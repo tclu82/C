@@ -1,0 +1,162 @@
+/*
+ * HW1
+ *
+ * @author  Tzu-Chien Lu tclu82@uw.edu
+ * @version Winter 2016
+ */
+
+#include <stdio.h>
+#include <string.h>
+
+int i;
+char c1, c2, c3, c4;
+
+void decToBin(char c1, char c2, char c3, char c4);
+
+/**
+ * Main funciton.
+ */
+int main()
+{
+
+    // This union is for extra credit.
+    union uf
+    {
+        // unsigned int and float.
+        unsigned int i;
+	float f;
+    }myuf;
+
+    int choice, sum = 0;
+
+    // Assigne char and initialize them.
+    char c, action = 'r', c1 = 'c', c2, c3, c4;
+
+    // ends loop if user input is not 'r'
+    while (action == 'r')
+    {
+    	printf("What type of conversion do you want? Enter\n");
+    	printf("1 for char,\n");
+	printf("2 for int,\n");
+    	printf("3 for float\n");
+    	printf(": ");
+        scanf("%d", &choice);
+
+        // user choose 1 for int
+    	if (choice == 1)
+	{
+            printf("Enter a line: ");
+
+            // take care of '\n'
+            getchar();
+            c = getchar();
+
+            // keep looping while c is not '\n'
+	    while (c != '\n')
+	    {
+		printf("%c ", c);
+
+		for (i = 7; i >= 0; i--) printf("%d", (c&(1<<i)) >> i);
+
+		printf("\n");
+
+		// 1's complement
+		c = ~c;
+
+                // make MSB untouched
+		c = c&(~(1<<7));
+		printf("%c ", c);
+
+		for (i = 7; i >= 0; i--) printf("%d", (c&(1<<i)) >> i);
+
+                printf("\n");
+
+                // enter the loop again
+		c = getchar();
+            }
+        }
+
+        // user choose 2 or 3
+	else if (choice == 2 || choice == 3)
+	{
+	    printf("Enter a line: ");
+
+            // handle '\n'
+            getchar();
+	    c1 = getchar();
+	    c2 = getchar();
+	    c3 = getchar();
+	    c4 = getchar();
+
+            // assume input of option 2 and 3 are characters of 4 times
+	    while (c1 != '\n')
+            {
+
+	        // 4 binary convert to a big one
+	        sum += c1<<24;
+	        sum += c2<<16;
+	        sum += c3<<8;
+	        sum += c4;
+
+                // int
+                if (choice == 2) printf("%d\n", sum);
+
+                // assigne sum to unsigned integer of union
+		myuf.i = sum;
+
+                // float
+		if (choice == 3) printf("%f\n", myuf.f);
+
+		decToBin(c1, c2, c3, c4);
+
+	        c1 = ~c1; // 1's
+	        c2 = ~c2; // 1's
+	        c3 = ~c3; // 1's
+	        c4 = ~c4 + 1; // 2's or c4 = -c4
+
+                if (choice == 2) printf("%d\n", -sum);
+
+                if (choice == 3) printf("%f\n", -myuf.f);
+
+		decToBin(c1, c2, c3, c4);
+
+                // reset to 0 for next loop
+	    	sum = 0;
+		c1 = getchar();
+
+		if (c1 != '\n') {
+		    c2 = getchar();
+	            c3 = getchar();
+	            c4 = getchar();
+		}
+            }
+	}
+	printf("Enter r to repeat, q to quit: ");
+
+        // check user input
+	scanf("%c", &action);
+    }
+
+    return 0;
+}
+
+
+/**
+ * This function convert decimal to binary.
+ */
+void decToBin(char c1, char c2, char c3, char c4)
+{
+
+    // read Nth bit, convert decimal to binary
+    for (i = 7; i >= 0; i--) printf("%d", (c1&(1<<i)) >> i);
+    printf(" ");
+
+    for (i = 7; i >= 0; i--) printf("%d", (c2&(1<<i)) >> i);
+    printf(" ");
+
+    for (i = 7; i >= 0; i--) printf("%d", (c3&(1<<i)) >> i);
+    printf(" ");
+
+    for (i = 7; i >= 0; i--) printf("%d", (c4&(1<<i)) >> i);
+    printf("\n");
+}
