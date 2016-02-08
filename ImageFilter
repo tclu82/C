@@ -1,0 +1,280 @@
+/*
+ * TCSS 333 HW2
+ *
+ * @author  Tzu-Chien Lu tclu82@uw.edu
+ * @version Winter 2016
+ */
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+
+/** use this from sample code. */
+#define HEADER_SIZE 54
+
+/**
+  * prototype.
+  */
+void darken(int h, int w, char* header, unsigned char* pixels, unsigned char copy[][w * 3], FILE* outfile);
+
+void grayscale(int h, int w, char* header, unsigned char* pixels, unsigned char copy[][w * 3], FILE* outfile);
+
+void flip(int h, int w, char* header, unsigned char* pixels, unsigned char copy[][w * 3], FILE* outfile);
+
+void mirroredVertical(int h, int w, char* header, unsigned char* pixels, unsigned char copy[][w * 3], FILE* outfile);
+
+void mirroredHorizental(int h, int w, char* header, unsigned char* pixels, unsigned char copy[][w * 3], FILE* outfile);
+
+void flip2(int h, int w, char* header, unsigned char* pixels, unsigned char copy[][w * 3], FILE* outfile);
+
+void inverse(int h, int w, char* header, unsigned char* pixels, unsigned char copy[][w * 3], FILE* outfile);
+
+
+/**
+  * main function.
+  */
+int main()
+{
+    /** file name. */
+    char fileName[64];
+    char postName[] = ".bmp";
+    int h, w;
+
+    /** ask user to input file name. */
+    printf("---\n");
+    printf("Enter the filename: ");
+    scanf("%s", fileName);
+    strcat(fileName, postName);
+
+    /** ask input file resolution. */
+    printf("Enter height and width (int pixels) : ");
+    scanf("%d%d", &h, &w);
+    printf("Done. Check the generated images.\n");
+    printf("---\n");
+
+    /** file for input and output. */
+    FILE *infile = fopen(fileName, "rb");
+    FILE *outfile;
+
+    /** header. */
+    char header[HEADER_SIZE];
+
+    /** unsigned char 2d arrays for pixel and copy. */
+    unsigned char pixels[h][w * 3];
+    unsigned char copy[h][w * 3];
+    fread(header, 1, HEADER_SIZE, infile);
+    fread(pixels, 1, h * w * 3, infile);
+
+    /** 4 functions for image manipulations. */
+    darken(h, w, header, (unsigned char*) pixels, copy, outfile);
+    grayscale(h, w, header, (unsigned char*) pixels, copy, outfile);
+    flip(h, w, header, (unsigned char*) pixels, copy, outfile);
+    mirroredVertical(h, w, header, (unsigned char*) pixels, copy, outfile);
+    mirroredHorizental(h, w, header, (unsigned char*) pixels, copy, outfile);
+    flip2(h, w, header, (unsigned char*) pixels, copy, outfile);
+    inverse(h, w, header, (unsigned char*) pixels, copy, outfile);
+
+    /** close input file. */
+    fclose(infile);
+    return 0;
+}
+
+/**
+  * produce a darkened copy.
+  */
+void darken(int h, int w, char* header, unsigned char* pixels, unsigned char copy[][w * 3], FILE* outfile)
+{
+    int r, c;
+
+    /** copy memory from pixels to copy. */
+    memcpy(copy, pixels, h * w * 3);
+
+    for(r = 0; r < h; r++) {
+
+        for (c = 0; c < w * 3; c++) {
+
+	    if (*(*(copy + r) + c) - 50 >= 0) *(*(copy + r) + c) -= 50;
+   	}
+    }
+
+    /** write to file. */
+    outfile = fopen("copy1.bmp", "wb");
+    fwrite(header, sizeof(char), HEADER_SIZE, outfile);
+    fwrite(copy, sizeof(char), h * w * 3, outfile);
+
+    /** close output file. */
+    fclose(outfile);
+}
+
+/**
+  * produce a grayscale copy.
+  */
+void grayscale(int h, int w, char* header, unsigned char* pixels, unsigned char copy[][w * 3], FILE* outfile)
+{
+    int r, c;
+
+    /** copy memory from pixels to copy. */
+    memcpy(copy, pixels, h * w * 3);
+
+    for(r = 0; r < h; r++) {
+
+        for (c = 0; c < w * 3; c += 3) {
+	    char avg = copy[r][c] * 0.07 + copy[r][c + 1] * 0.72 + copy[r][c + 2] * 0.21;
+	    copy[r][c] = avg;
+	    copy[r][c + 1] = avg;
+	    copy[r][c + 2] = avg;
+        }
+    }
+
+    /** write to file. */
+    outfile = fopen("copy2.bmp", "wb");
+    fwrite(header, sizeof(char), HEADER_SIZE, outfile);
+    fwrite(copy, sizeof(char), h * w * 3, outfile);
+
+    /** close output file. */
+    fclose(outfile);
+}
+
+/**
+  * produce a flipped vertically copy.
+  */
+void flip(int h, int w, char* header, unsigned char* pixels, unsigned char copy[][w * 3], FILE* outfile)
+{
+    int r, c;
+
+    /** copy memory from pixels to copy. */
+    memcpy(copy, pixels, h * w * 3);
+
+    for(r = 0; r < h / 2; r++) {
+
+        for (c = 0; c < w * 3; c++) {
+	    char temp = copy[r][c];
+	    copy[r][c] = copy[h -r - 1][c];
+	    copy[h - r - 1][c] = temp;
+     	}
+    }
+
+    /** write to file. */
+    outfile = fopen("copy3.bmp", "wb");
+    fwrite(header, sizeof(char), HEADER_SIZE, outfile);
+    fwrite(copy, sizeof(char), h * w * 3, outfile);
+
+    /** close output file. */
+    fclose(outfile);
+}
+
+/**
+  * produce a mirrored vertically copy.
+  */
+void mirroredVertical(int h, int w, char* header, unsigned char* pixels, unsigned char copy[][w * 3], FILE* outfile)
+{
+    int r, c;
+
+    /** copy memory from pixels to copy. */
+    memcpy(copy, pixels, h * w * 3);
+
+    for(r = 0; r < h / 2; r++) {
+
+        for (c = 0; c < w * 3; c++) copy[r][c] = copy[h - 1 - r][c];
+    }
+
+    /** write to file. */
+    outfile = fopen("copy4.bmp", "wb");
+    fwrite(header, sizeof(char), HEADER_SIZE, outfile);
+    fwrite(copy, sizeof(char), h * w * 3, outfile);
+
+    /** close output file. */
+    fclose(outfile);
+}
+
+
+/**
+  * Extra credit.
+  */
+void mirroredHorizental(int h, int w, char* header, unsigned char* pixels, unsigned char copy[][w * 3], FILE* outfile)
+{
+    int r, c;
+
+    /** copy memory from pixels to copy. */
+    memcpy(copy, pixels, h * w * 3);
+
+    for(r = 0; r < h; r++) {
+
+        for (c = 0; c < w * 3 / 2; c += 3) {
+	    char temp1 = copy[r][c];
+	    char temp2 = copy[r][c+1];
+	    char temp3 = copy[r][c+2];
+
+	    copy[r][w * 3 - c - 1] = temp3;
+	    copy[r][w * 3 - c - 2] = temp2;
+	    copy[r][w * 3 - c - 3] = temp1;
+     	}
+    }
+
+    /** write to file. */
+    outfile = fopen("copy5.bmp", "wb");
+    fwrite(header, sizeof(char), HEADER_SIZE, outfile);
+    fwrite(copy, sizeof(char), h * w * 3, outfile);
+
+    /** close output file. */
+    fclose(outfile);
+}
+
+/**
+  * Extra credit.
+  */
+void flip2(int h, int w, char* header, unsigned char* pixels, unsigned char copy[][w * 3], FILE* outfile)
+{
+    int r, c;
+
+    /** copy memory from pixels to copy. */
+    memcpy(copy, pixels, h * w * 3);
+
+    for(r = 0; r < h; r++) {
+
+        for (c = 0; c < w * 3 / 2; c += 3) {
+	    char temp1 = copy[r][c];
+	    char temp2 = copy[r][c+1];
+	    char temp3 = copy[r][c+2];
+
+	    copy[r][c] = copy[r][w * 3 - c - 3];
+	    copy[r][c+1] = copy[r][w * 3 - c - 2];
+	    copy[r][c+2] = copy[r][w * 3- c - 1];
+
+	    copy[r][w * 3 - c - 1] = temp3;
+	    copy[r][w * 3 - c - 2] = temp2;
+	    copy[r][w * 3 - c - 3] = temp1;
+     	}
+    }
+
+    /** write to file. */
+    outfile = fopen("copy6.bmp", "wb");
+    fwrite(header, sizeof(char), HEADER_SIZE, outfile);
+    fwrite(copy, sizeof(char), h * w * 3, outfile);
+
+    /** close output file. */
+    fclose(outfile);
+}
+
+/**
+  * Extra credit.
+  */
+void inverse(int h, int w, char* header, unsigned char* pixels, unsigned char copy[][w * 3], FILE* outfile)
+{
+    int r, c;
+
+    /** copy memory from pixels to copy. */
+    memcpy(copy, pixels, h * w * 3);
+
+    for(r = 0; r < h; r++) {
+
+        for (c = 0; c < w * 3; c ++) copy[r][c] = 255 - copy[r][c];
+    }
+
+    /** write to file. */
+    outfile = fopen("copy7.bmp", "wb");
+    fwrite(header, sizeof(char), HEADER_SIZE, outfile);
+    fwrite(copy, sizeof(char), h * w * 3, outfile);
+
+    /** close output file. */
+    fclose(outfile);
+}
